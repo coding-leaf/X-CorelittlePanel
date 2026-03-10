@@ -1,0 +1,29 @@
+# Binaries
+xray-panel
+xray-panel-linux
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Configuration
+config.json
+traffic_data.json
+
+# Certificates & Cache
+certs/
+*.crt
+*.key
+*.pem
+
+# Go dependency
+vendor/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+*.db
+
+# Logs
+*.log
