@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <title>管理后台 - Xray Panel</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <script src="https://cdn.staticfile.net/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <a href="/" class="btn">◀ 返回面板</a>
+      </div>
+      <div class="header-right">
+        <button class="btn" style="color:var(--accent-red);background:rgba(255,59,48,0.1)" onclick="fetch('/api/logout',{method:'POST',credentials:'include'}).then(()=>location.href='/login')">安全退出</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-bar">
+      <button class="tab-btn active" onclick="switchAdminTab('users', this)">用户管理</button>
+      <button class="tab-btn" onclick="switchAdminTab('xray', this)">Xray 守护进程</button>
+      <button class="tab-btn" onclick="switchAdminTab('config', this)">配置编辑器</button>
+      <button class="tab-btn" onclick="switchAdminTab('cert', this)">证书与安全</button>
+      <button class="tab-btn" onclick="switchAdminTab('telegram', this)">Telegram 告警</button>
+      <button class="tab-btn" onclick="switchAdminTab('subscribe', this)">节点订阅</button>
+      <button class="tab-btn" onclick="switchAdminTab('logs', this)">审计日志</button>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="panel-users" class="tab-panel active">
+      <div class="card full-width">
+        <div class="card-header">
+          <h2>用户管理 (VLESS)</h2>
+          <div style="display:flex;gap:10px">
+            <button class="btn" onclick="showAddUser()">+ 添加用户</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Add User Form (hidden by default) -->
+          <div id="addUserForm" style="display:none;margin-bottom:20px;padding:16px;background:rgba(0,122,255,0.05);border-radius:12px;border:1px solid rgba(0,122,255,0.1)">
+            <div style="display:flex;gap:12px;align-items:center">
+              <input type="text" id="newEmail" class="form-input" placeholder="邮箱 / 用户标识 (例: user@example.com)" style="flex:1">
+              <button class="btn btn-primary" onclick="addUser()">确认添加</button>
+              <button class="btn" onclick="hideAddUser()">取消</button>
+            </div>
+          </div>
+          <div class="user-table-wrap">
+            <table class="user-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>UUID</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="usersBody">
+                <tr><td colspan="3" class="loading-msg">加载中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Xray Tab -->
+    <div id="panel-xray" class="tab-panel">
+      <div class="card full-width">
+        <div class="card-header">
+          <h2>Xray 服务控制</h2>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div id="xrayStatus" class="status-badge">● 检查中</div>
+            <button class="btn btn-primary" onclick="xrayAction('reload')">热重载配置</button>
+            <button class="btn" onclick="xrayAction('restart')">硬重启服务</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="margin-bottom:16px;padding:14px;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.12);border-radius:10px">
+            <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">版本信息</div>
+            <div id="xrayVersion"><span style="color:var(--text-muted)">加载中...</span></div>
+          </div>
+          <div id="xrayResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Config Editor Tab -->
+    <div id="panel-config" class="tab-panel">
+      <div class="card full-width">
+        <div class="card-header">
+          <h2>高级配置编辑器</h2>
+          <div style="display:flex;gap:10px">
+            <button class="btn" onclick="validateConfig()">语法检查</button>
+            <button class="btn" onclick="restoreConfig()">恢复备份</button>
+            <button class="btn btn-primary" onclick="saveConfig()">保存</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="margin-bottom:12px;font-size:12px;color:var(--text-muted)">
+            * 保存时将自动创建 .bak 后缀的备份文件。
+          </div>
+          <textarea id="configEditor" class="config-editor" spellcheck="false" style="width:100%;min-height:400px;font-family:'Consolas',monospace;font-size:13px;padding:16px;background:rgba(0,0,0,0.03);border-radius:8px;border:1px solid var(--border);color:var(--text-primary);resize:vertical"></textarea>
+          <div id="configResult" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cert Tab -->
+    <div id="panel-cert" class="tab-panel">
+      <div class="card full-width">
+        <div class="card-header">
+          <h2>证书状态诊断</h2>
+        </div>
+        <div class="card-body">
+          <div id="certInfo">
+            <div class="loading-msg">加载中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Telegram Tab -->
+    <div id="panel-telegram" class="tab-panel">
+      <div class="card full-width">
+        <div class="card-header">
+          <h2>Telegram 告警控制</h2>
+          <button class="btn btn-primary" onclick="testTelegram()">发送测试消息</button>
+        </div>
+        <div class="card-body">
+          <div id="tgStatus" style="font-size:14px;line-height:1.6;color:var(--text-secondary)">加载中...</div>
+          <div id="tgResult" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subscribe Tab -->
+    <div id="panel-subscribe" class="tab-panel">
+      <div class="card full-width">
+        <div class="card-header">
+          <h2>节点订阅</h2>
+        </div>
+        <div class="card-body">
+          <div class="user-table-wrap">
+            <table class="user-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="subUsersBody">
+                <tr><td colspan="2" class="loading-msg">加载中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logs Tab -->
+    <div id="panel-logs" class="tab-panel">
+      <div class="card full-width">
+        <div class="card-header">
+          <h2>审计日志</h2>
+          <div style="display:flex;gap:10px;align-items:center">
+            <select id="logLimitSelect" class="form-input" style="width:auto;padding:6px 10px;font-size:12px" onchange="loadLogData()">
+              <option value="500">500 条</option>
+              <option value="1000">1000 条</option>
+              <option value="3000" selected>3000 条</option>
+            </select>
+            <button class="btn" onclick="exportLogs()">⬇ 导出</button>
+            <button class="btn" style="color:var(--accent-red);background:rgba(255,59,48,0.1)" onclick="clearLogs()">🗑 清空</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;gap:12px;margin-bottom:16px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;gap:8px">
+              <button class="tab-btn log-tab active" onclick="switchLogTab('access', this)">Access 日志</button>
+              <button class="tab-btn log-tab" onclick="switchLogTab('error', this)">Error 日志</button>
+            </div>
+            <input type="text" id="logSearch" class="form-input" placeholder="搜索..." style="flex:1;min-width:150px;padding:6px 12px;font-size:13px" oninput="renderLogData()">
+            <div id="logRouteWrap" style="display:none">
+              <select id="logRouteSelect" class="form-input" style="width:auto;padding:6px 10px;font-size:12px" onchange="selLogRoute(this.value)"></select>
+            </div>
+            <span id="logCount" style="font-size:12px;color:var(--text-muted)">0 条</span>
+          </div>
+          <div id="logUserChips" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
+          <div id="logContainer" style="max-height:60vh;overflow-y:auto">
+            <div class="loading-msg">点击「审计日志」标签加载</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Cycle Modal -->
+  <div class="modal-overlay" id="cycleModal" onclick="if(event.target===this)closeCycleModal()">
+    <div class="modal-content" style="max-width:400px">
+      <div class="card-header">
+        <h2 id="cycleModalTitle">设置流量周期</h2>
+        <button class="btn" onclick="closeCycleModal()">✕</button>
+      </div>
+      <div class="card-body">
+        <div style="margin-bottom:16px">
+          <label style="font-size:13px;color:var(--text-muted);display:block;margin-bottom:8px">每月流量重置日期 (1-31)。设置为 0 表示不自动重置。</label>
+          <input type="number" id="cycleDayInput" min="0" max="31" value="0" class="form-input">
+        </div>
+        <div style="text-align:right">
+          <button class="btn btn-primary" onclick="saveCycle()">保存设置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subscribe Modal -->
+  <div class="modal-overlay" id="subModal" onclick="if(event.target===this)closeSubModal()">
+    <div class="modal-content" style="max-width:600px">
+      <div class="card-header">
+        <h2 id="subModalTitle">节点订阅</h2>
+        <button class="btn" onclick="closeSubModal()">✕</button>
+      </div>
+      <div class="card-body">
+        <div id="subModalContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

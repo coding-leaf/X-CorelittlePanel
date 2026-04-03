@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <title>审计日志 - Xray Panel</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/logs.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+  <div class="container" style="max-width:1440px;padding:24px">
+    <div class="header" style="margin-bottom:24px">
+      <div class="header-left">
+        <div class="logo" style="width:36px;height:36px;font-size:16px">X</div>
+        <h1>审计日志中心</h1>
+      </div>
+      <div class="header-right">
+        <a href="/admin/panel" class="btn">◀ 返回管理页</a>
+      </div>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <h3 style="font-size:14px;font-weight:600;margin-bottom:16px;color:var(--text-primary)">筛选条件</h3>
+        
+        <input type="text" id="searchInput" class="search-input" placeholder="按 UUID / IP / 关键字搜索..." oninput="filterLogs()">
+        
+        <div style="margin-bottom:16px">
+          <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:8px">日志类型</label>
+          <select id="logType" class="form-input" onchange="switchLogType()">
+            <option value="access">Access 访问日志</option>
+            <option value="error">Error 错误/系统日志</option>
+          </select>
+        </div>
+
+        <div id="userFilterBlock">
+          <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:8px;display:flex;justify-content:space-between">
+            <span>按用户查看 (Access)</span>
+            <span id="userCount" style="color:var(--accent-blue)">0</span>
+          </label>
+          <div id="userList" style="max-height:calc(100vh - 350px);overflow-y:auto;margin-right:-8px;padding-right:8px">
+            <div class="user-item active" onclick="selectUser('')">全部记录</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="log-container">
+        <div class="log-toolbar">
+          <div style="font-size:13px;color:var(--text-secondary)">
+            共返回 <span id="logCount" style="font-weight:600;color:var(--text-inverse)">0</span> 条最新记录 (倒序)
+          </div>
+          <div style="display:flex;gap:10px">
+            <span id="loadingIndicator" class="loading" style="display:none;padding:0;margin:0 10px 0 0;font-size:12px">加载中</span>
+            <button class="btn" style="padding:6px 12px;font-size:12px" onclick="exportLogs()">⬇ 导出</button>
+            <button class="btn" style="padding:6px 12px;font-size:12px;color:var(--accent-red);background:rgba(255,59,48,0.1)" onclick="clearLogs()">🗑 清空当前日志</button>
+          </div>
+        </div>
+        
+        <div class="log-wrap" id="logBody">
+          <!-- Table constructed via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/logs.js"></script>
+</body>
+</html>

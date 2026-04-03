@@ -1,0 +1,102 @@
+/* logs.css */
+
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.sidebar {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: var(--glass-blur);
+  padding: 16px;
+  position: sticky;
+  top: 24px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  margin-bottom: 12px;
+  outline: none;
+}
+
+.user-item {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.user-item:hover {
+  background: rgba(0,0,0,0.03);
+}
+
+.user-item.active {
+  background: rgba(0, 122, 255, 0.1);
+  color: var(--accent-blue);
+  font-weight: 500;
+}
+
+.log-container {
+  background: #1d1d1f;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: calc(100vh - 180px);
+  display: flex;
+  flex-direction: column;
+}
+
+.log-toolbar {
+  padding: 14px 20px;
+  background: rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.log-wrap {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  font-family: 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #e2e8f0;
+}
+
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.log-table td {
+  padding: 4px 8px;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.log-time { color: #8892b0; width: 140px; }
+.log-ip { color: #60a5fa; width: 130px; }
+.log-msg { color: #e2e8f0; word-break: break-all; }
+.log-err { color: #f87171; }
+.log-warn { color: #fb923c; }
+
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+}
