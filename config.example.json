@@ -1,0 +1,21 @@
+{
+    "password": "SetYourStrongPasswordHere",
+    "listen_addr": "0.0.0.0:8880",
+    "xray_api": "127.0.0.1:10085",
+    "access_log": "/var/log/xray/access.log",
+    "error_log": "/var/log/xray/error.log",
+    "xray_config_path": "/usr/local/etc/xray/config.json",
+    "xray_bin_path": "/usr/local/bin/xray",
+    "cert_path": "/usr/local/etc/xray/xray.crt",
+    "traffic_data_path": "traffic_data.json",
+    "reality_addr": "YOUR_SERVER_IP",
+    "reality_public_key": "YOUR_REALITY_PUBLIC_KEY",
+    "cdn_domain": "your.domain.com",
+    "cdn_encryption": "none",
+    "telegram_token": "",
+    "telegram_chat_id": "",
+    "public_dashboard": false,
+    "tls_cert_file": "",
+    "tls_key_file": "",
+    "domain": ""
+}
